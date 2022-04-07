@@ -1,10 +1,11 @@
 # features/user/viewsets.py
 
-from features.user.serializers import UserSerializer
-from features.user.models import User
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
+
+from features.user.serializers import UserSerializer
+from features.user.models import User
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -15,10 +16,15 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ['updated']
     ordering = ['-updated']
 
-    # list
     def get_queryset(self):
-        # if self.request.user.is_superuser:
-        return User.objects.all()
+        qs = User.objects.all()
+        return qs
+        # return qs.filter(email__recipients__contains=self.request.user)
+
+    # # list
+    # def get_queryset(self):
+    #     # if self.request.user.is_superuser:
+    #     return User.objects.all()
 
     # retrieve
     def get_object(self):
@@ -28,3 +34,20 @@ class UserViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+
+# class UserEmailViewSet(viewsets.ModelViewSet):
+#     queryset = User.objects.all()
+#     serializer_class = UserEmailSerializer
+#     # permission_classes = [permissions.IsAuthenticated]
+#     # lookup_field = 'pk'
+
+#     def get_queryset(self):
+#         qs = super().get_queryset()
+#         u = qs.get(id=self.request.user.id)
+#         inbox = u.emails_received.all()
+#         sent = u.emails_sent.all()
+
+#         print(f"inbox: {inbox}")
+#         print(f"sent: {sent}")
+#         return inbox | sent

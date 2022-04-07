@@ -13,3 +13,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'is_active', 'created', 'updated']
         read_only_field = ['is_active', 'created', 'updated']
+
+
+# class UserEmailSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Email
+#         fields = '__all__'

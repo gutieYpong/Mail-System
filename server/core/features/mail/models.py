@@ -5,11 +5,6 @@ class Email(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
     archived = models.BooleanField(default=False)
-    owner = models.ForeignKey(
-        "features_user.User",
-        on_delete=models.CASCADE,
-        related_name="emails"
-        )
     sender = models.ForeignKey(
         "features_user.User",
         null=True,
@@ -17,12 +12,6 @@ class Email(models.Model):
         related_name="emails_sent"
         )
     recipients = models.ManyToManyField("features_user.User", related_name="emails_received")
-    # recipients = models.ForeignKey(
-    #     "features_user.User",
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    #     related_name="emails_received"
-    #     )
     subject = models.CharField(max_length=255)
     body = models.TextField(blank=True)
 

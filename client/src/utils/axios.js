@@ -12,7 +12,6 @@ const axiosService = axios.create({
 });
 
 axiosService.interceptors.request.use(async (config) => {
-  // console.log(`axiosService request...`)
   const { token } = store.getState().persistedReducer.auth;
 
   if (token !== null) {
@@ -24,7 +23,7 @@ axiosService.interceptors.request.use(async (config) => {
 
 axiosService.interceptors.response.use(
   (res) => {
-    // console.log('[Response]', res.config.baseURL + res.config.url, res.status, res.data);
+    console.log('[Response]', res.config.baseURL + res.config.url, res.status, res.data);
     return Promise.resolve(res);
   },
   (err) => {
@@ -59,18 +58,18 @@ const refreshAuthLogic = async (failedRequest) => {
         store.dispatch(
           authSlice.actions.setAuthTokens({ token: access, refreshToken: refreshToken })
         );
-        // console.log(`refresh dispatch success after....`)
       })
       .catch((err) => {
         if (err.response && err.response.status === 401) {
-          // console.log(`refresh dispatch failure before....`)
           store.dispatch(authSlice.actions.setLogout());
         }
       });
   }
 };
 
-createAuthRefreshInterceptor(axiosService, refreshAuthLogic);
+createAuthRefreshInterceptor(axiosService, refreshAuthLogic, {
+  statusCodes: [ 401, 403 ] // default: [ 401 ]
+});
 
 export function fetcher(url) {
   return axiosService.get(url).then((res) => res.data);

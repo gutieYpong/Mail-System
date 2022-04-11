@@ -1,6 +1,9 @@
 import React from 'react'
 // import styled from 'styled-components';
+import useSWR from 'swr';
+import * as dayjs from 'dayjs';
 
+import { fetcher } from "../../utils/axios";
 // import { fontLayout } from '../../constants/common';
 
 import { styled } from '@mui/material/styles';
@@ -48,17 +51,9 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(sender, subject, date) {
-  return { sender, subject, date };
-}
+const CustomizedTables = props => {
+  const { inbox } = props;
 
-const rows = [
-  createData('abc@pong.com', 'fuck you', '2022-03-23'),
-  createData('xxx@pong.com', 'nice to fuck you', '2022-03-23'),
-  createData('xyz@pong.com', 'goodbye sunshine', '2022-03-23'),
-];
-
-const CustomizedTables = () => {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -70,32 +65,32 @@ const CustomizedTables = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.sender}>
-              <StyledTableCell component="th" scope="row">
-                {row.sender}
-              </StyledTableCell>
-              <StyledTableCell>{row.subject}</StyledTableCell>
-              <StyledTableCell align="right">{row.date}</StyledTableCell>
-            </StyledTableRow>
-          ))}
+          {
+            inbox ?
+            inbox.map((item) => (
+              <StyledTableRow key={`mail-${item.id}`}>
+                <StyledTableCell component="th" scope="row">
+                  {item.sender_email}
+                </StyledTableCell>
+                <StyledTableCell>{item.subject}</StyledTableCell>
+                <StyledTableCell align="right">{dayjs(item.created).format('YYYY-MM-DD hh:mm:ss A')}</StyledTableCell>
+              </StyledTableRow>
+            )) : 'loading'
+          }
         </TableBody>
       </Table>
     </TableContainer>
   );
 }
 
-
 const Inbox = () => {
+  const inbox = useSWR(
+    `/mail/inbox/`,
+    fetcher,
+  );
+
   return (
-    <CustomizedTables />
-    // <div>
-    //   <MailItem>
-    //     <Sender>xxx@pong.com</Sender>
-    //     <div>subject</div>
-    //     <div>time</div>
-    //   </MailItem>
-    // </div>
+    <CustomizedTables inbox={inbox.data} />
   )
 }
 

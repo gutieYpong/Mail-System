@@ -1,3 +1,8 @@
+import React from 'react'
+import useSWR from 'swr';
+import * as dayjs from 'dayjs';
+import { fetcher } from "../../utils/axios";
+
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -28,17 +33,9 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(sender, subject, date) {
-  return { sender, subject, date };
-}
+const CustomizedTables = props => {
+  const { sent } = props;
 
-const rows = [
-  createData('abc@pong.com', 'fuck you', '2022-03-23'),
-  createData('xxx@pong.com', 'nice to fuck you', '2022-03-23'),
-  createData('xyz@pong.com', 'goodbye sunshine', '2022-03-23'),
-];
-
-const CustomizedTables = () => {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -50,15 +47,18 @@ const CustomizedTables = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.sender}>
-              <StyledTableCell component="th" scope="row">
-                {row.sender}
-              </StyledTableCell>
-              <StyledTableCell>{row.subject}</StyledTableCell>
-              <StyledTableCell align="right">{row.date}</StyledTableCell>
-            </StyledTableRow>
-          ))}
+          {
+            sent ?
+            sent.map((item) => (
+              <StyledTableRow key={`mail-${item.id}`}>
+                <StyledTableCell component="th" scope="row">
+                  {item.sender_email}
+                </StyledTableCell>
+                <StyledTableCell>{item.subject}</StyledTableCell>
+                <StyledTableCell align="right">{dayjs(item.created).format('YYYY-MM-DD hh:mm:ss A')}</StyledTableCell>
+              </StyledTableRow>
+            )) : 'loading'
+          }
         </TableBody>
       </Table>
     </TableContainer>
@@ -66,8 +66,13 @@ const CustomizedTables = () => {
 }
 
 const Sent = () => {
+  const sent = useSWR(
+    `/mail/sent/`,
+    fetcher,
+  );
+
   return (
-    <CustomizedTables />
+    <CustomizedTables sent={sent.data} />
   )
 }
 

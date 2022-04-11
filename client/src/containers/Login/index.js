@@ -39,9 +39,13 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = ( email, password ) => {
+  const handleLogin = ( username, password ) => {
     axios
-      .post(`${process.env.REACT_APP_API_URL}/auth/login/`, { email, password })
+      .post(`${process.env.REACT_APP_API_URL}/auth/login/`, { username, password }, {
+        headers: {  // can post without this header, just to specify it here
+          'Content-Type': 'application/json',
+        }
+      })
       .then( res => {
         dispatch(
           authSlice.actions.setAuthTokens({
@@ -76,15 +80,15 @@ const Login = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: '',
+      username: '',
       password: '',
     },
     onSubmit: values => {
       setLoading(true);
-      handleLogin(values.email, values.password);
+      handleLogin(values.username, values.password);
     },
     validationSchema: Yup.object({
-      email: Yup.string().trim().required("Username is required."),
+      username: Yup.string().trim().required("Username is required."),
       password: Yup.string().trim().required("Password is required."),
     }),
   });
@@ -118,12 +122,12 @@ const Login = () => {
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
                 autoFocus
-                value={ formik.values.email }
+                value={ formik.values.username }
                 onChange={ formik.handleChange }
                 onBlur={ formik.handleBlur }
               />
@@ -166,8 +170,8 @@ const Login = () => {
                 </Grid>
               </Grid>
               {
-                formik.errors.email ? 
-                <Typography component="h1" variant="h6" children={ formik.errors.email } /> : null
+                formik.errors.username ? 
+                <Typography component="h1" variant="h6" children={ formik.errors.username } /> : null
               }
               {
                 formik.errors.password ? 

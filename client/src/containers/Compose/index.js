@@ -11,10 +11,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import DraftsIcon from '@mui/icons-material/Drafts';
 import Typography from '@mui/material/Typography';
@@ -43,7 +39,7 @@ const Compose = () => {
   const handleSend = ( recipient, subject, body ) => {
     axios
       .post(`${process.env.REACT_APP_API_URL}/mail/compose/`, {
-        'recipients': [recipient],
+        'recipients': recipient,
         'subject': subject,
         'body': body
       }, {
@@ -52,14 +48,18 @@ const Compose = () => {
         }
       })
       .then( res => {
-        console.log('mail sent.')
         setLoading( false );
+        navigate('/sent');
       })
       .catch( err => {
-        setMessage( err.response.data.detail.toString() );
         setLoading( false );
+        setMessage( `Recipients: ${err.response.data.recipients.toString()}` );
       });
   };
+
+  const recipientValidate = () => {
+
+  }
 
   const formik = useFormik({
     initialValues: {
@@ -68,12 +68,31 @@ const Compose = () => {
       mailBody: '',
     },
     onSubmit: values => {
-      // setLoading(true);
-      handleSend(values.mailRecipient, values.mailSubject, values.mailBody);
+      const recipientArray = values.mailRecipient.split(",").map(item => item.trim());
+      setLoading(true);
+      handleSend(recipientArray, values.mailSubject, values.mailBody);
     },
     validationSchema: Yup.object({
-      mailRecipient: Yup.string().trim().required("Recipient is required."),
-      mailSubject: Yup.string().trim().required("Subject is required."),
+      mailRecipient: Yup.string()
+        // .email("errorMessages.PROVIDE_VALID_EMAIL")
+        .required("Please provide recipient(s) email.")
+        .test(
+          "Mail Recipient",
+          "Recipient(s) email not in right format.",
+          (value) => {
+            const re =
+              /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            const recipientArray = value.split(',').map(item => item.trim());
+
+            for(let i = 0; i < recipientArray.length; i++) {
+              if(!re.test(recipientArray[i].toLowerCase())) {
+                return false
+              }
+            }
+            return true
+          },
+        ),
+      mailSubject: Yup.string().trim().required("* Subject is required."),
     }),
   });
 
@@ -103,6 +122,12 @@ const Compose = () => {
                 textAlign: 'right',
               }}
             >
+              {
+                message &&
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'red' }}>
+                  { message }
+                </Typography>
+              }
               <TextField
                 margin="normal"
                 required
@@ -112,9 +137,7 @@ const Compose = () => {
                 type="text"
                 id="mailRecipient"
                 // autoComplete="current-password"
-                value={ formik.values.mailRecipient }
-                onChange={ formik.handleChange }
-                onBlur={ formik.handleBlur }
+                {...formik.getFieldProps('mailRecipient')}
               />
               <TextField
                 required
@@ -123,10 +146,7 @@ const Compose = () => {
                 label="Subject"
                 name="mailSubject"
                 // autoComplete="subject"
-                autoFocus
-                value={ formik.values.mailSubject }
-                onChange={ formik.handleChange }
-                onBlur={ formik.handleBlur }
+                {...formik.getFieldProps('mailSubject')}
               />
               <TextField
                 id="mailBody"
@@ -135,55 +155,49 @@ const Compose = () => {
                 fullWidth
                 rows={6}
                 placeholder="Click here to write..."
-                value={ formik.values.mailBody }
-                onChange={ formik.handleChange }
-                onBlur={ formik.handleBlur }
                 sx={{ mt: 1 }}
+                {...formik.getFieldProps('mailBody')}
               />
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-                disabled={ loading }
+              <Box
+                sx={{
+                  mt: 1,
+                  mb: 2,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
               >
-                Send
-              </Button>
-              {/* {
-                formik.errors.username ? 
-                <Typography component="h1" variant="h6" children={ formik.errors.username } /> : null
-              }
-              {
-                formik.errors.password ? 
-                <Typography component="h1" variant="h6" children={ formik.errors.password } /> : null
-              } */}
-              <Typography component="h1" variant="h5">
-                Message: { message }
-              </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'left'
+                  }}
+                >
+                  {
+                    formik.touched.mailRecipient && formik.errors.mailRecipient &&
+                    <Typography variant="body1" children={ formik.errors.mailRecipient } sx={{ textAlign: 'left' }} />
+                  }
+                  {
+                    formik.touched.mailSubject && formik.errors.mailSubject &&
+                    <Typography variant="body1" children={ formik.errors.mailSubject } 
+                    sx={{ textAlign: 'left' }} />
+                  }
+                </Box>
+                <Button
+                  type="submit"
+                  size="large"
+                  variant="contained"
+                  disabled={ loading }
+                >
+                  Send
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Container>
       </ThemeProvider>
     </RootContainer>
   )
-
-  // return (
-  //   <div id="compose-view">
-  //     <h3>New Email</h3>
-  //     <form id="compose-form">
-  //       <div class="form-group">
-  //         From: <input disabled class="form-control" value="{{ request.user.email }}" name="sendfrom" />
-  //       </div>
-  //       <div class="form-group">
-  //         To: <input id="compose-recipients" class="form-control" />
-  //       </div>
-  //       <div class="form-group">
-  //         <input class="form-control" id="compose-subject" placeholder="Subject" />
-  //       </div>
-  //       <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
-  //       <input onclick="submit_mails()" type="button" class="btn btn-primary" value="Submit" />
-  //     </form>
-  //   </div>
-  // )
 }
 
 export default Compose;

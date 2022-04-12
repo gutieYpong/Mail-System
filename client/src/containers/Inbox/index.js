@@ -30,7 +30,6 @@ import Paper from '@mui/material/Paper';
 //   ${ fontLayout('Roboto', 'normal', '500', '16px', '12px', '#000000') }
 // `;
 
-
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,

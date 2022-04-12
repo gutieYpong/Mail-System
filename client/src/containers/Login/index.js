@@ -31,9 +31,8 @@ const RootContainer = styled.div`
   background-color: lightpink;
 `;
 
-const theme = createTheme();
-
 const Login = () => {
+  const theme = createTheme();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
@@ -56,27 +55,12 @@ const Login = () => {
         dispatch( authSlice.actions.setAccount(res.data.user) );
         setLoading( false );
         navigate("/");
-        // navigate("/profile", {
-        //   state: {
-        //     userId: res.data.user.id
-        //   }
-        // });
       })
       .catch( err => {
-        setMessage( err.response.data.detail.toString() );
         setLoading( false );
+        setMessage( err.response.data.detail.toString() );
       });
   };
-
-  //* ... MUI default function ...
-  // const handleSubmit = (event) => {
-  //   event.preventDefault();
-  //   const data = new FormData(event.currentTarget);
-  //   console.log({
-  //     email: data.get('email'),
-  //     password: data.get('password'),
-  //   });
-  // };
 
   const formik = useFormik({
     initialValues: {
@@ -88,8 +72,8 @@ const Login = () => {
       handleLogin(values.username, values.password);
     },
     validationSchema: Yup.object({
-      username: Yup.string().trim().required("Username is required."),
-      password: Yup.string().trim().required("Password is required."),
+      username: Yup.string().trim().required("* Username is required."),
+      password: Yup.string().trim().required("* Password is required."),
     }),
   });
 
@@ -100,7 +84,7 @@ const Login = () => {
           <CssBaseline />
           <Box
             sx={{
-              marginTop: 8,
+              mt: 8,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -118,6 +102,12 @@ const Login = () => {
               noValidate
               sx={{ mt: 1 }}
             >
+              {
+                message &&
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'red' }}>
+                  { message }
+                </Typography>
+              }
               <TextField
                 margin="normal"
                 required
@@ -126,10 +116,10 @@ const Login = () => {
                 label="Username"
                 name="username"
                 autoComplete="username"
-                autoFocus
-                value={ formik.values.username }
-                onChange={ formik.handleChange }
-                onBlur={ formik.handleBlur }
+                {...formik.getFieldProps('username')}
+                // value={ formik.values.username }
+                // onChange={ formik.handleChange }
+                // onBlur={ formik.handleBlur }
               />
               <TextField
                 margin="normal"
@@ -148,15 +138,39 @@ const Login = () => {
                 control={<Checkbox value="remember" color="primary" />}
                 label="Remember me"
               />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-                disabled={ loading }
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'left'
+                }}
               >
-                Sign In
-              </Button>
+                {
+                  formik.touched.username && formik.errors.username &&
+                  <Typography variant="body1" children={ formik.errors.username } />
+                }
+                {
+                  formik.touched.password && formik.errors.password &&
+                  <Typography variant="body1" children={ formik.errors.password } />
+                }
+              </Box>
+              <Box
+                sx={{
+                  mt: 1,
+                  mb: 2,
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
+                <Button
+                  type="submit"
+                  size="large"
+                  variant="contained"
+                  disabled={ loading }
+                >
+                  Sign In
+                </Button>
+              </Box>
               <Grid container>
                 <Grid item xs>
                   <Link href="#" variant="body2">
@@ -169,17 +183,6 @@ const Login = () => {
                   </Link>
                 </Grid>
               </Grid>
-              {
-                formik.errors.username ? 
-                <Typography component="h1" variant="h6" children={ formik.errors.username } /> : null
-              }
-              {
-                formik.errors.password ? 
-                <Typography component="h1" variant="h6" children={ formik.errors.password } /> : null
-              }
-              <Typography component="h1" variant="h5">
-                Message: { message }
-              </Typography>
             </Box>
           </Box>
         </Container>

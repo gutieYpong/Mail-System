@@ -15,8 +15,13 @@ class EmailSerializer(serializers.ModelSerializer):
     # url = serializers.HyperlinkedIdentityField(view_name='mailing-detail', lookup_field='pk')
     url = serializers.SerializerMethodField(read_only=True)
     sender_email = serializers.ReadOnlyField(source='sender.email')
-    recipients_email = serializers.SerializerMethodField(read_only=True)
-    recipients = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    # recipients = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    recipients = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        many=True,
+        read_only=False,
+        slug_field='email'
+        )
 
     class Meta:
         model = Email
@@ -29,7 +34,6 @@ class EmailSerializer(serializers.ModelSerializer):
             'sender',
             'sender_email',
             'recipients',
-            'recipients_email',
             'subject',
             'body'
         ]
@@ -52,6 +56,3 @@ class EmailSerializer(serializers.ModelSerializer):
             kwargs={'mailbox': mailbox, 'pk': obj.pk},
             request=request
             )
-
-    def get_recipients_email(self, obj):
-        return [item.email for item in obj.recipients.all()]
